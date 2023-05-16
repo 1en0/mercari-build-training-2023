@@ -51,7 +51,7 @@ func addItem(c echo.Context) error {
 
 	err := saveImage(img, imgName)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, Response[string]{Message: err.Error()})
 	}
 	//err = updateFile(name, category, imgName)
 	//if err != nil {
@@ -60,7 +60,7 @@ func addItem(c echo.Context) error {
 
 	err = addItemInDb(name, category, imgName)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, Response[string]{Message: err.Error()})
 	}
 	res := Response[string]{Message: message}
 
@@ -75,7 +75,7 @@ func getItemsById(c echo.Context) error {
 	//}
 	items, err := getItemsInDb()
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, Response[string]{Message: err.Error()})
 	}
 	if itemId >= len(items.Items) {
 		res := Response[string]{Message: "Item index out of range"}
@@ -90,7 +90,7 @@ func searchItems(c echo.Context) error {
 	keyword := c.QueryParam("keyword")
 	items, err := getItemsByKeywordInDb(keyword)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, Response[string]{Message: err.Error()})
 	}
 	res := Response[Items]{Message: *items}
 	return c.JSON(http.StatusOK, res)
@@ -100,7 +100,7 @@ func getItems(c echo.Context) error {
 	//items, err := readItemListFromFile()
 	items, err := getItemsInDb()
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, Response[string]{Message: err.Error()})
 	}
 	//message, _ := strconv.Unquote(bufStr)
 	//print(bufStr + "\n")
