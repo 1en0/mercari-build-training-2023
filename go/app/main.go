@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"mercari-build-training-2023/db"
 	"net/http"
 	"os"
 	"path"
@@ -52,8 +53,12 @@ func addItem(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	err = updateFile(name, category, imgName)
+	//err = updateFile(name, category, imgName)
+	//if err != nil {
+	//	return err
+	//}
 
+	err = db.AddItem(name, category, imgName)
 	if err != nil {
 		return err
 	}
@@ -122,6 +127,11 @@ func main() {
 		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
 	}))
 
+	// Init database
+	db.DbInit()
+
+	defer db.Db.Close()
+
 	// Routes
 	e.GET("/", root)
 	e.POST("/items", addItem)
@@ -131,4 +141,5 @@ func main() {
 
 	// Start server
 	e.Logger.Fatal(e.Start(":9000"))
+
 }
