@@ -56,6 +56,31 @@ func addItemInDb(name string, category string, image_filename string) error {
 	return nil
 }
 
+func getItemsByKeywordInDb(keyword string) (*Items, error) {
+	//query := "SELECT items.name, c.name, items.image_filename FROM items JOIN category c ON c.id = items.category_id WHERE items.name LIKE '%(?)%' OR c.name LIKE '%(?)%'"
+	condition := "%" + keyword + "%"
+	query := "SELECT items.name, c.name, items.image_filename FROM items JOIN category c ON c.id = items.category_id WHERE items.name LIKE (?) OR c.name LIKE (?)"
+
+	stmt, err := Db.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := stmt.Query(condition, condition)
+	if err != nil {
+		return nil, err
+	}
+	var result Items
+	for rows.Next() {
+		var name, category, image_filename string
+		_ = rows.Scan(&name, &category, &image_filename)
+		result.Items = append(result.Items, Item{
+			Name:          name,
+			Category:      category,
+			ImageFilename: image_filename,
+		})
+	}
+	return &result, nil
+}
 func getCategoryId(category string) (int64, error) {
 	var id int64
 	err := Db.QueryRow("SELECT id FROM category WHERE NAME = ?", category).Scan(&id)

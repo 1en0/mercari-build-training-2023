@@ -69,7 +69,11 @@ func addItem(c echo.Context) error {
 
 func getItemsById(c echo.Context) error {
 	itemId, _ := strconv.Atoi(c.Param("id"))
-	items, err := readItemListFromFile()
+	//items, err := readItemListFromFile()
+	//if err != nil {
+	//	return err
+	//}
+	items, err := getItemsInDb()
 	if err != nil {
 		return err
 	}
@@ -79,6 +83,16 @@ func getItemsById(c echo.Context) error {
 	}
 	//buf, err := json.Marshal(items.Items[itemId])
 	res := Response[Item]{Message: items.Items[itemId]}
+	return c.JSON(http.StatusOK, res)
+}
+
+func searchItems(c echo.Context) error {
+	keyword := c.QueryParam("keyword")
+	items, err := getItemsByKeywordInDb(keyword)
+	if err != nil {
+		return err
+	}
+	res := Response[Items]{Message: *items}
 	return c.JSON(http.StatusOK, res)
 }
 
@@ -138,6 +152,7 @@ func main() {
 	e.GET("/items", getItems)
 	e.GET("/image/:imageFilename", getImg)
 	e.GET("/items/:id", getItemsById)
+	e.GET("/search", searchItems)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":9000"))
