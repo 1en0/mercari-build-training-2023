@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"mercari-build-training-2023/db"
+
 	"net/http"
 	"os"
 	"path"
@@ -58,7 +58,7 @@ func addItem(c echo.Context) error {
 	//	return err
 	//}
 
-	err = db.AddItem(name, category, imgName)
+	err = addItemInDb(name, category, imgName)
 	if err != nil {
 		return err
 	}
@@ -83,11 +83,11 @@ func getItemsById(c echo.Context) error {
 }
 
 func getItems(c echo.Context) error {
-	items, err := readItemListFromFile()
+	//items, err := readItemListFromFile()
+	items, err := getItemsInDb()
 	if err != nil {
 		return err
 	}
-
 	//message, _ := strconv.Unquote(bufStr)
 	//print(bufStr + "\n")
 
@@ -128,9 +128,9 @@ func main() {
 	}))
 
 	// Init database
-	db.DbInit()
+	DbInit()
 
-	defer db.Db.Close()
+	defer Db.Close()
 
 	// Routes
 	e.GET("/", root)

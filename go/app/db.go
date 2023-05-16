@@ -1,4 +1,4 @@
-package db
+package main
 
 import (
 	"database/sql"
@@ -15,7 +15,29 @@ func DbInit() {
 	}
 }
 
-func AddItem(name string, category string, image_filename string) error {
+func getItemsInDb() (*Items, error) {
+	query := "SELECT items.name, c.name, items.image_filename FROM items JOIN category c ON c.id = items.category_id"
+	stmt, err := Db.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := stmt.Query()
+	if err != nil {
+		return nil, err
+	}
+	var result Items
+	for rows.Next() {
+		var name, category, image_filename string
+		_ = rows.Scan(&name, &category, &image_filename)
+		result.Items = append(result.Items, Item{
+			Name:          name,
+			Category:      category,
+			ImageFilename: image_filename,
+		})
+	}
+	return &result, nil
+}
+func addItemInDb(name string, category string, image_filename string) error {
 	id, err := getCategoryId(category)
 	if err == sql.ErrNoRows {
 		id, err = addCategory(category)
