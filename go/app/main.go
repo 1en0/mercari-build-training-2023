@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-
 	"net/http"
 	"os"
 	"path"
@@ -51,16 +50,12 @@ func addItem(c echo.Context) error {
 
 	err := saveImage(img, imgName)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, Response[string]{Message: err.Error()})
+		return err
 	}
-	//err = updateFile(name, category, imgName)
-	//if err != nil {
-	//	return err
-	//}
+	err = updateFile(name, category, imgName)
 
-	err = addItemInDb(name, category, imgName)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, Response[string]{Message: err.Error()})
+		return err
 	}
 	res := Response[string]{Message: message}
 
@@ -69,13 +64,9 @@ func addItem(c echo.Context) error {
 
 func getItemsById(c echo.Context) error {
 	itemId, _ := strconv.Atoi(c.Param("id"))
-	//items, err := readItemListFromFile()
-	//if err != nil {
-	//	return err
-	//}
-	items, err := getItemsInDb()
+	items, err := readItemListFromFile()
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, Response[string]{Message: err.Error()})
+		return err
 	}
 	if itemId >= len(items.Items) {
 		res := Response[string]{Message: "Item index out of range"}
@@ -86,22 +77,12 @@ func getItemsById(c echo.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func searchItems(c echo.Context) error {
-	keyword := c.QueryParam("keyword")
-	items, err := getItemsByKeywordInDb(keyword)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, Response[string]{Message: err.Error()})
-	}
-	res := Response[Items]{Message: *items}
-	return c.JSON(http.StatusOK, res)
-}
-
 func getItems(c echo.Context) error {
-	//items, err := readItemListFromFile()
-	items, err := getItemsInDb()
+	items, err := readItemListFromFile()
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, Response[string]{Message: err.Error()})
+		return err
 	}
+
 	//message, _ := strconv.Unquote(bufStr)
 	//print(bufStr + "\n")
 
@@ -141,20 +122,13 @@ func main() {
 		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
 	}))
 
-	// Init database
-	DbInit()
-
-	defer Db.Close()
-
 	// Routes
 	e.GET("/", root)
 	e.POST("/items", addItem)
 	e.GET("/items", getItems)
 	e.GET("/image/:imageFilename", getImg)
 	e.GET("/items/:id", getItemsById)
-	e.GET("/search", searchItems)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":9000"))
-
 }
